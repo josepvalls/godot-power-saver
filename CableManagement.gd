@@ -4,6 +4,9 @@ extends Node2D
 var girl_at = 0
 var girl_left = Vector2(-250,320)
 var girl_right = Vector2(1250,320)
+var girl_move_time = 5.0
+var girl_visible = true
+var girl_moving = false
 
 export(AudioStream) var switch_on
 export(AudioStream) var switch_off
@@ -17,6 +20,8 @@ var is_music_on = true
 
 var intro_talking_time = 5
 var current_intro = 1
+var intro_slides = 5
+var current_level = 0
 
 var current_state = "intro"
 var state_transitions = {
@@ -29,17 +34,57 @@ var state_transitions = {
 var current_power = 0.0
 var current_happiness = 0.0
 
-var current_hotspot = -1
+var current_hotspot = "screen2"
 var update_elapsed = 0.0
 var update_interval = 0.5
 
-var scoring_paused = true
+var levels = [
+	 #0
+	{},
+	#1
+	{
+		"pc1":[true, true, -5, -5],
+		"pc2":[true, true, -5, -5],
+		"screen1":[true, true, 5, 4],
+		"screen2":[true, true, 4, 2],
+	},
+	{
+		"pc1":[true, true, -5, -5],
+		"pc2":[true, true, -5, -5],
+		"screen1":[true, true, 5, 4],
+		"screen2":[true, true, 4, 2],
+		"mp3": [true, true, 10,2]
+	},
+	{
+		"pc1":[true, true, -5, -5],
+		"pc2":[true, true, -5, -5],
+		"screen1":[true, true, 5, 4],
+		"screen2":[true, true, 4, 2],
+		"mp3": [true, true, 10,2],
+		"phone": [true, true, 1,2]
+	},
+	{
+		"pc1":[true, true, -5, -5],
+		"pc2":[true, true, -5, -5],
+		"screen1":[true, true, 5, 4],
+		"screen2":[true, true, 4, 2],
+		"mp3": [true, true, 4,2],
+		"phone": [true, true, 1,2]
+	}
+	
+]
+
 
 func hotspot_to_status(hotspot: Hotspot):
 	$CanvasLayer/ControlPopup/Status1.text = hotspot.status_str_1
 	$CanvasLayer/ControlPopup/Status2.text = hotspot.status_str_2
 	$CanvasLayer/ControlPopup/Powered.pressed = hotspot.is_on
 	$CanvasLayer/ControlPopup/Idle.value = hotspot.idle_percent
+	if hotspot.is_in_stand_by:
+		$CanvasLayer/ControlPopup/Idle.theme_type_variation = "ProgressBar"
+		#$CanvasLayer/ControlPopup/Idle["theme_overrides/fg"].bg_color = Color(0,1,0,1)
+	else:
+		$CanvasLayer/ControlPopup/Idle.theme_type_variation = "UseProgressBar"
 	if hotspot.uses_battery:
 		$CanvasLayer/ControlPopup/Battery.show()
 		$CanvasLayer/ControlPopup/ACPower.hide()
@@ -79,24 +124,44 @@ func click_power():
 		
 
 func update_statuses(delta):
-	if not scoring_paused:
+	if current_state=="playing":
 		update_elapsed += delta
 	if update_elapsed >= update_interval:
-		var tick_happiness = 0.0
-		update_elapsed = 0
 		var fps = Engine.get_frames_per_second()
 		OS.set_window_title("fps: " + str(fps))
-		
+
+		var tick_happiness = 0.0
+		update_elapsed = 0	
 		current_power = 0.0
+		
+		if light_on:
+			current_power += 60
 		
 		for item in $Lights.get_children():
 			var hotspot: Hotspot = item.get_node("Hotspot")
 			hotspot.refresh_status(update_interval)
-			if hotspot.is_on:
-				current_power += hotspot.power_use
-			tick_happiness += hotspot.current_happiness
 			if hotspot.uid == current_hotspot:
 				hotspot_to_status(hotspot)
+			#print(hotspot.print_status())
+			
+			if hotspot.is_on:
+				current_power += hotspot.power_use
+			
+			tick_happiness += hotspot.current_happiness
+				
+		# bonuses
+		if current_level<len(levels):
+			if tick_happiness>=len(levels[current_level])*0.1:
+				tick_happiness += 1
+		
+		if girl_visible and light_on or not girl_visible and not light_on:
+			tick_happiness += 1
+		elif girl_moving and not girl_visible:
+			# be nice, do not discount here
+			pass
+		else:
+			tick_happiness -= 1
+
 	
 		current_happiness += tick_happiness
 		$CanvasLayer/Score/ScoreDelta.show()
@@ -117,12 +182,13 @@ func _ready():
 	for item in $Lights.get_children():
 		var hotspot: Hotspot = item.get_node("Hotspot")
 		if hotspot:
-			hotspot.uid = idx
+			hotspot.uid = hotspot.get_parent().name
 			idx += 1
 			hotspot.connect("input_event", self, "click_hotspot", [hotspot])
 
 	$CanvasLayer/Score/ScoreDelta.hide()
 	$Girl.hide()
+	$Girl.animation = "idle"
 	$CanvasLayer/ControlPopup.hide()
 	
 	$CanvasLayer/ControlPopup/Powered.connect("pressed", self, "click_power")
@@ -134,13 +200,34 @@ func _ready():
 	$CanvasLayer/Intro2/Control/Button.connect("pressed", self, "do_next_tutorial")
 	$CanvasLayer/Intro3/Control/Button.connect("pressed", self, "do_next_tutorial")
 	$CanvasLayer/Intro4/Control/Button.connect("pressed", self, "do_next_tutorial")
-	$CanvasLayer/Intro1.show()
+	$CanvasLayer/Intro5/Control/Button.connect("pressed", self, "do_next_tutorial")
 	
 	$CanvasLayer/AudioStreamPlayer.stream = music_on
 	$CanvasLayer/AudioStreamPlayer.volume_db = linear2db(music_volume)
 	$CanvasLayer/AudioStreamPlayer.play()
-
 	
+	$Background/GirlVisible.connect("area_entered", self, "girl_visibility", [true])
+	$Background/GirlVisible.connect("area_exited", self, "girl_visibility", [false])
+	$Girl/Area2D.connect("area_entered", self, "girl_toggle_level")
+	
+	for i in range(2,intro_slides+1):
+		$CanvasLayer.get_node("Intro" + str(i)).hide()
+	$CanvasLayer/Intro1.show()
+
+func girl_visibility(area, girl_state):
+	girl_visible = girl_state
+	
+func girl_toggle_level(area):
+	if current_level < len(levels):
+		var hotspot := area as Hotspot
+		if hotspot != null and hotspot.uid in levels[current_level]:
+			print("Toggling "+hotspot.uid)
+			hotspot.elapsed = 0
+			hotspot.want_to_use = levels[current_level][hotspot.uid][0]
+			hotspot.is_on = levels[current_level][hotspot.uid][1]
+			hotspot.want_to_use_time = levels[current_level][hotspot.uid][2]
+			hotspot.in_stand_by_time = levels[current_level][hotspot.uid][3]
+			
 func do_talk():
 	$Jelly/mouth.playing = true
 
@@ -158,16 +245,26 @@ func do_next_tutorial():
 		$Girl.show()
 	elif current_intro == 3:
 		$CanvasLayer/ControlPopup.show()
-	if current_intro <= 4:
+		$CanvasLayer/ControlPopup/Powered.disabled = true
+	elif current_intro == 4:
+		$Girl.animation = "walk"
+		$Tween.interpolate_property($Girl, "global_position", $Girl.global_position, girl_right, girl_move_time/2)
+		$Tween.start()
+		girl_at = 1
+	elif current_intro == 5:
+		click_switch(null, null, null)
+
+	if current_intro <= intro_slides:		
 		$CanvasLayer.get_node("Intro" + str(current_intro)).show()
 	else:
-		current_state = 'playing'
-		call_deferred("girl_move")
-		scoring_paused = false
+		current_state = "playing"
+		$CanvasLayer/ControlPopup/Powered.disabled = false
+		yield(get_tree().create_timer(8), "timeout")
+		girl_move()
 
 func click_hotspot(camera, event: InputEvent, position, hotspot: Hotspot):
 	if event.is_pressed():
-		if not scoring_paused:
+		if current_state == "playing":
 			$CanvasLayer/ControlPopup.show()
 			var desired_position = hotspot.global_position + Vector2(0, -120)
 			desired_position.x = clamp(desired_position.x, 0, 1024-200)
@@ -181,15 +278,16 @@ func click_hotspot(camera, event: InputEvent, position, hotspot: Hotspot):
 func _unhandled_input(event):
 	if event is InputEventMouseButton and event.button_index == BUTTON_LEFT and event.pressed:
 		print("clicked nowhere")
-		if current_hotspot != -1:
+		
+		if current_state=="playing" and current_hotspot != "":
 			#get_tree().set_input_as_handled()
-			current_hotspot = -1
+			current_hotspot = ""
 			$CanvasLayer/ControlPopup.hide()
 		
 
 
 func click_switch(camera, event: InputEvent, position):
-	if event.is_pressed():
+	if event == null or current_state == "playing" and event.is_pressed():
 		if light_on:
 			$Switch/On.hide()
 			$Switch/Off.show()
@@ -204,7 +302,6 @@ func click_switch(camera, event: InputEvent, position):
 			$Switch/Off.hide()
 			$Switch/AudioStreamPlayer.stream = switch_on
 			$Switch/AudioStreamPlayer.play()
-
 			$Light.show()
 			$CanvasModulate.hide()
 			get_tree().call_group("shadows", "show")
@@ -222,21 +319,26 @@ func _process(delta):
 		$LittleJelly.global_position = lerp($LittleJelly.global_position, get_viewport().get_mouse_position(), 0.1)
 	
 func girl_move():
+	current_level += 1
+	print("Starting level "+str(current_level))
+	girl_moving = true
+	$Girl.show()
 	$Girl.animation = "walk"
-	var move_time = 5
 	if girl_at == 0:
 		$Girl.flip_h = 0
-		$Tween.interpolate_property($Girl, "global_position", girl_left, girl_right, move_time)
+		$Tween.interpolate_property($Girl, "global_position", girl_left, girl_right, girl_move_time)
 		girl_at = 1
 	else:
 		$Girl.flip_h = 1
-		$Tween.interpolate_property($Girl, "global_position", girl_right, girl_left, move_time)
+		$Tween.interpolate_property($Girl, "global_position", girl_right, girl_left, girl_move_time)
 		girl_at = 0
-	$Tween.interpolate_deferred_callback(self,  move_time, "girl_stop_sound")
-	$Tween.interpolate_deferred_callback(self,  move_time*2, "girl_move")
+	$Tween.interpolate_deferred_callback(self,  girl_move_time, "girl_stop_sound")
+	$Tween.interpolate_deferred_callback(self,  girl_move_time*4, "girl_move")
 	$Girl/AudioStreamPlayer.volume_db = 3
 	$Girl/AudioStreamPlayer.play()
 	$Tween.start()
 
 func girl_stop_sound():
 	$Girl/AudioStreamPlayer.stop()
+	girl_moving = false
+

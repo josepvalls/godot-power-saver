@@ -1,15 +1,15 @@
 extends Area2D
 class_name Hotspot
 
-var uid = -1
+var uid = ""
 
 var flicker_delay = 0.01
 var flicker_delay_current = 0.0
 
 export var is_speaker = false
 
-export var is_on = true
-export var want_to_use = true
+export var is_on = false
+export var want_to_use = false
 
 
 export var uses_battery = true
@@ -24,7 +24,7 @@ export var status_str_2 = ""
 export var charge_rate = 0.06
 export var discharge_rate = 0.04
 
-export var want_to_use_time = 5.0
+export var want_to_use_time = -5.0
 export var in_stand_by_time = 5.0
 export var elapsed = 0.0
 export var idle_percent = 0
@@ -34,6 +34,19 @@ export var power_use = 75
 export var happiness_generation = 1.0
 export var current_happiness = 1.0
 
+func print_status():
+	var status_str_3 = str(uid)
+	if is_on:
+		status_str_3 += " is on"
+	else:
+		status_str_3 += " is off"
+	if want_to_use:
+		status_str_3 += " wanted"
+	else:
+		status_str_3 += " not wanted"
+	status_str_3 += " " + str(current_happiness) 
+	return status_str_3
+
 
 func refresh_status(delta):
 	if want_to_use_time >=0:
@@ -41,15 +54,16 @@ func refresh_status(delta):
 		if elapsed > want_to_use_time+in_stand_by_time:
 			want_to_use = false
 			is_in_stand_by = false
-			idle_percent = 0
+			idle_percent = 100
 		else:
 			want_to_use = true
 			if elapsed <= want_to_use_time:
 				is_in_stand_by = false
-				idle_percent = 100.0 * elapsed / want_to_use_time 
+				#idle_percent = 100.0 * elapsed / want_to_use_time 
 			elif elapsed <= want_to_use_time + in_stand_by_time:
 				is_in_stand_by = true
-				idle_percent = 100.0 * (elapsed-want_to_use_time) / in_stand_by_time 
+				#idle_percent = 100.0 * (elapsed-want_to_use_time) / in_stand_by_time 
+			idle_percent = 100.0 * elapsed / (want_to_use_time+in_stand_by_time) 
 		idle_percent = 100 - idle_percent
 	
 	if want_to_use:
@@ -58,20 +72,20 @@ func refresh_status(delta):
 				status_str_1 = "In use"
 			else:
 				status_str_1 = "In stand-by"
-			current_happiness = happiness_generation * delta
+			current_happiness = 0.2 * happiness_generation * delta
 		else:
-			status_str_1 = "Couldn't use"
-			current_happiness = -0.5*happiness_generation * delta
+			status_str_1 = "Unable to be used"
+			current_happiness = -0.2*happiness_generation * delta
 	else:
 		if is_on:
 			status_str_1 = "Wasting power"
-			current_happiness = -0.1
+			current_happiness = -1.0*happiness_generation * delta
 		else:
 			status_str_1 = "Off"
 			current_happiness = 0
 	
 	if not uses_battery:
-		status_str_2 = "N/A"
+		status_str_2 = "Charging not needed"
 		is_powered = true
 	else:
 		if is_on:
