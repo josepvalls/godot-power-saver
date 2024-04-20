@@ -70,10 +70,79 @@ var levels = [
 		"screen2":[true, true, 4, 2],
 		"mp3": [true, true, 4,2],
 		"phone": [true, true, 1,2]
+	},
+	{
+		"pc1":[true, true, -5, -5],
+		"pc2":[true, true, -5, -5],
+		"screen1":[true, true, 5, 4],
+		"screen2":[true, true, 4, 2],
+		"mp3": [true, true, 4,2],
+		"phone": [true, true, 4,3],
+		"tablet3": [true, true, 4,4],
 	}
+
 	
 ]
 
+# cables
+var cable_instance: Cable = null
+var cable_end_instance: CableEnd = null
+var dragging: CableEnd = null
+var cables = {}
+var ports = {}
+var active_port: Hotspot = null
+
+func create_cables():
+	create_cable(ports["power3"], ports["mp3"])
+	create_cable(ports["tablet1"], ports["power4"])
+	create_cable(ports["power5"], ports["phone"])
+	create_cable(ports["power6"], ports["cassette"])
+
+func create_cable(from: Hotspot, to: Hotspot):
+	print("creating cable from "+from.uid+" to "+to.uid)
+	var end1 := cable_end_instance.duplicate() as CableEnd
+	end1.global_position = from.port_position
+	end1.show()
+
+	var end2 := cable_end_instance.duplicate() as CableEnd
+	end2.global_position = to.port_position
+	end2.show()
+
+	var cable := cable_instance.duplicate() as Cable
+	cable.show()
+	
+	var cable_color = Color(randf(), randf(), 1, 1)
+	cable.modulate = cable_color
+	end1.modulate = cable_color
+	end2.modulate = cable_color
+
+	cables[end1] = [cable, end2, false]
+	cables[end2] = [cable, end1, true]
+	
+
+	$Cables.add_child(end1)
+	end1.connect("clicked", self, "start_drag")
+	$Cables.add_child(end2)
+	end2.connect("clicked", self, "start_drag")
+	$Cables.add_child(cable)
+	
+	refresh_cable(end1)
+
+func refresh_cable(cable_end: CableEnd):
+	var cable_data= cables[cable_end]
+	cable_data[0].set_cable(cable_end.global_position, cable_data[1].global_position, cable_data[2])
+
+
+func switch_active_port(port: Hotspot):
+	active_port = port
+
+
+
+func start_drag(source: CableEnd):
+	print("start dragging "+str(source.cable_id))
+	dragging = source
+
+# Devices
 
 func hotspot_to_status(hotspot: Hotspot):
 	$CanvasLayer/ControlPopup/Status1.text = hotspot.status_str_1
@@ -176,15 +245,41 @@ func update_statuses(delta):
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	cable_instance = $Cable
+	cable_end_instance = $Draggable
+	call_deferred("create_cables")
+	
 	$Switch/Area2D.connect("input_event", self, "click_switch")
 	
-	var idx = 0
+	var idx = 1
 	for item in $Lights.get_children():
 		var hotspot: Hotspot = item.get_node("Hotspot")
 		if hotspot:
 			hotspot.uid = hotspot.get_parent().name
-			idx += 1
+			#idx += 1
+			if hotspot.uses_battery:
+				ports[hotspot.uid] = hotspot
+				var plug = hotspot.get_parent().get_node("Position2D")
+				if plug == null:
+					hotspot.port_position = hotspot.global_position + Vector2(0,60)
+				else:
+					hotspot.port_position = plug.global_position
+				hotspot.connect("mouse_entered", self, "switch_active_port", [hotspot])
+				hotspot.connect("mouse_exited", self, "switch_active_port", [null])
+				
 			hotspot.connect("input_event", self, "click_hotspot", [hotspot])
+
+	for item in $Power.get_children():
+		var hotspot:= item as Hotspot
+		if hotspot:
+			hotspot.uid = "power"+str(idx)
+			hotspot.port_position = hotspot.global_position
+			ports[hotspot.uid] = hotspot
+			hotspot.connect("mouse_entered", self, "switch_active_port", [hotspot])
+			hotspot.connect("mouse_exited", self, "switch_active_port", [null])
+
+			idx += 1
+
 
 	$CanvasLayer/Score/ScoreDelta.hide()
 	$Girl.hide()
@@ -278,11 +373,20 @@ func click_hotspot(camera, event: InputEvent, position, hotspot: Hotspot):
 func _unhandled_input(event):
 	if event is InputEventMouseButton and event.button_index == BUTTON_LEFT and event.pressed:
 		print("clicked nowhere")
-		
 		if current_state=="playing" and current_hotspot != "":
 			#get_tree().set_input_as_handled()
 			current_hotspot = ""
 			$CanvasLayer/ControlPopup.hide()
+	elif dragging!= null and event is InputEventMouseButton and event.button_index == BUTTON_LEFT and not event.pressed:
+		print("stop dragging "+str(dragging.cable_id))
+		get_tree().set_input_as_handled()
+		if active_port!=null:
+			dragging.global_position = active_port.port_position
+		else:
+			dragging.global_position.y = 550
+		refresh_cable(dragging)
+		dragging = null
+
 		
 
 
@@ -308,15 +412,22 @@ func click_switch(camera, event: InputEvent, position):
 			light_on=true
 
 func _process(delta):
+	# devices
 	update_statuses(delta)
 	# move to cursor
 	if current_state=="playing":
-		var vec = get_viewport().get_mouse_position() - $LittleJelly.global_position
-		$LittleJelly.look_at(get_viewport().get_mouse_position())
+		var jelly_target = get_viewport().get_mouse_position() - Vector2(0,30)
+		var vec = jelly_target - $LittleJelly.global_position
+		$LittleJelly.look_at(jelly_target)
 		$LittleJelly.rotation -= PI/4
 		if vec.length() < 100:
 			$LittleJelly.rotation = lerp(0, $LittleJelly.rotation, vec.length()/100)
-		$LittleJelly.global_position = lerp($LittleJelly.global_position, get_viewport().get_mouse_position(), 0.1)
+		$LittleJelly.global_position = lerp($LittleJelly.global_position, jelly_target, 0.1)
+		
+		if dragging != null:
+			dragging.global_position = get_viewport().get_mouse_position()
+			refresh_cable(dragging)
+
 	
 func girl_move():
 	current_level += 1

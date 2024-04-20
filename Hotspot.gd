@@ -3,6 +3,8 @@ class_name Hotspot
 
 var uid = ""
 
+export var power_provider = false
+
 var flicker_delay = 0.01
 var flicker_delay_current = 0.0
 
@@ -34,6 +36,9 @@ export var power_use = 75
 export var happiness_generation = 1.0
 export var current_happiness = 1.0
 
+var port_position = Vector2(0,0)
+
+
 func print_status():
 	var status_str_3 = str(uid)
 	if is_on:
@@ -49,6 +54,8 @@ func print_status():
 
 
 func refresh_status(delta):
+	if power_provider:
+		return
 	if want_to_use_time >=0:
 		elapsed += delta
 		if elapsed > want_to_use_time+in_stand_by_time:
@@ -123,6 +130,8 @@ func refresh_status(delta):
 
 
 func _ready():
+	if power_provider:
+		return
 	if is_on and is_powered:
 		get_parent().energy = 1
 	else:
@@ -137,7 +146,9 @@ func do_toggle():
 		is_on = true
 		get_parent().energy = 1
 		
-func _process(delta):		
+func _process(delta):
+	if power_provider:
+		return	
 	if is_on:
 		# flicker
 		flicker_delay_current += delta

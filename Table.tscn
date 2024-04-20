@@ -1,4 +1,4 @@
-[gd_scene load_steps=173 format=2]
+[gd_scene load_steps=174 format=2]
 
 [ext_resource path="res://Objects/genericItem_color_067.png" type="Texture" id=1]
 [ext_resource path="res://Objects/genericItem_color_065.png" type="Texture" id=2]
@@ -40,9 +40,11 @@
 [ext_resource path="res://cutegirlfiles/Jump (14).png" type="Texture" id=38]
 [ext_resource path="res://cutegirlfiles/Idle (12).png" type="Texture" id=39]
 [ext_resource path="res://cutegirlfiles/Jump (12).png" type="Texture" id=40]
+[ext_resource path="res://Cable.tscn" type="PackedScene" id=41]
 [ext_resource path="res://cutegirlfiles/Idle (8).png" type="Texture" id=42]
 [ext_resource path="res://cutegirlfiles/Jump (18).png" type="Texture" id=43]
 [ext_resource path="res://cutegirlfiles/Walk (20).png" type="Texture" id=44]
+[ext_resource path="res://CableEnd.tscn" type="PackedScene" id=45]
 [ext_resource path="res://cutegirlfiles/Idle (10).png" type="Texture" id=46]
 [ext_resource path="res://cutegirlfiles/Idle (11).png" type="Texture" id=47]
 [ext_resource path="res://cutegirlfiles/Jump (8).png" type="Texture" id=50]
@@ -188,11 +190,6 @@ _data = {
 [sub_resource type="Curve2D" id=11]
 _data = {
 "points": PoolVector2Array( 0, 0, 0, 0, 645, 283, -3.3371, 20.0226, 3.3371, -20.0226, 586, 237, 0, 0, 0, 0, 618, 204 )
-}
-
-[sub_resource type="Curve2D" id=4]
-_data = {
-"points": PoolVector2Array( 0, 0, 0, 0, 285, -279, 21.8633, -11.7725, -21.8633, 11.7725, 272, -121, 37.8403, 34.4768, -37.8403, -34.4768, 144, -125, 0, 0, 0, 0, 124, -253 )
 }
 
 [sub_resource type="Gradient" id=14]
@@ -741,6 +738,9 @@ texture = ExtResource( 115 )
 [node name="Hotspot" parent="Lights/remote" instance=ExtResource( 139 )]
 position = Vector2( -4.33014, -2.49998 )
 
+[node name="Position2D" type="Position2D" parent="Lights/remote"]
+position = Vector2( -18.3037, 43.7032 )
+
 [node name="pda" type="Light2D" parent="Lights"]
 position = Vector2( -225, 191 )
 texture = ExtResource( 110 )
@@ -750,6 +750,9 @@ color = Color( 0.596078, 0.992157, 0.470588, 1 )
 position = Vector2( 9, -2 )
 power_use = 2
 
+[node name="Position2D" type="Position2D" parent="Lights/pda"]
+position = Vector2( 2, 46 )
+
 [node name="tablet1" type="Light2D" parent="Lights"]
 position = Vector2( 355.84, 213 )
 texture = ExtResource( 121 )
@@ -758,6 +761,9 @@ texture = ExtResource( 121 )
 position = Vector2( 2, 0 )
 power_use = 3
 
+[node name="Position2D" type="Position2D" parent="Lights/tablet1"]
+position = Vector2( -13.84, 45 )
+
 [node name="tablet2" type="Light2D" parent="Lights"]
 position = Vector2( 431.84, 219 )
 texture = ExtResource( 114 )
@@ -765,6 +771,9 @@ texture = ExtResource( 114 )
 [node name="Hotspot" parent="Lights/tablet2" instance=ExtResource( 139 )]
 position = Vector2( 7, 1 )
 power_use = 3
+
+[node name="Position2D" type="Position2D" parent="Lights/tablet2"]
+position = Vector2( 9.16003, 54 )
 
 [node name="cassette" type="Light2D" parent="Lights"]
 position = Vector2( 71, 304 )
@@ -775,6 +784,9 @@ color = Color( 1, 0.835294, 0.835294, 1 )
 position = Vector2( -5, -6 )
 power_use = 5
 
+[node name="Position2D" type="Position2D" parent="Lights/cassette"]
+position = Vector2( -10, 41 )
+
 [node name="mp3" type="Light2D" parent="Lights"]
 position = Vector2( 718.84, 307 )
 texture = ExtResource( 122 )
@@ -784,6 +796,9 @@ color = Color( 0.94902, 0.368627, 1, 1 )
 position = Vector2( 1, -2 )
 power_use = 2
 
+[node name="Position2D" type="Position2D" parent="Lights/mp3"]
+position = Vector2( -6.84003, 48 )
+
 [node name="tablet3" type="Light2D" parent="Lights"]
 position = Vector2( 386.84, 297 )
 texture = ExtResource( 111 )
@@ -792,6 +807,9 @@ texture = ExtResource( 111 )
 position = Vector2( 3, -4 )
 power_use = 3
 
+[node name="Position2D" type="Position2D" parent="Lights/tablet3"]
+position = Vector2( -6.83997, 38 )
+
 [node name="phone" type="Light2D" parent="Lights"]
 position = Vector2( -225, 290 )
 texture = ExtResource( 113 )
@@ -799,6 +817,9 @@ color = Color( 0.596078, 0.992157, 0.470588, 1 )
 
 [node name="Hotspot" parent="Lights/phone" instance=ExtResource( 139 )]
 power_use = 1
+
+[node name="Position2D" type="Position2D" parent="Lights/phone"]
+position = Vector2( -10, 50 )
 
 [node name="pc2" type="Light2D" parent="Lights"]
 position = Vector2( 619.84, 190 )
@@ -859,17 +880,50 @@ want_to_use_time = -1.0
 power_use = 15
 happiness_generation = 0.0
 
-[node name="CableThin" type="Path2D" parent="."]
-position = Vector2( 23, 632 )
-curve = SubResource( 4 )
+[node name="Power" type="Node2D" parent="."]
+position = Vector2( 970, 207 )
 
-[node name="Line2D" type="Line2D" parent="CableThin"]
-points = PoolVector2Array( 285, -279, 285.272, -274.01, 285.514, -269.011, 285.734, -264.015, 285.932, -259.02, 286.11, -254.034, 286.268, -249.044, 286.406, -244.049, 286.524, -239.047, 286.62, -234.035, 286.695, -229.033, 286.746, -224.035, 286.773, -219.049, 286.774, -214.032, 286.748, -209.029, 286.693, -204.036, 286.607, -199.05, 286.487, -194.066, 286.329, -189.057, 286.13, -184.064, 285.886, -179.062, 285.591, -174.074, 285.238, -169.08, 284.82, -164.11, 284.326, -159.154, 283.74, -154.196, 283.045, -149.252, 282.211, -144.323, 281.202, -139.442, 279.949, -134.601, 278.343, -129.865, 276.159, -125.363, 272.903, -121.575, 268.482, -119.237, 263.897, -117.227, 259.227, -115.415, 254.508, -113.776, 249.734, -112.285, 244.924, -110.938, 240.068, -109.725, 235.19, -108.651, 230.277, -107.713, 225.331, -106.916, 220.366, -106.265, 215.377, -105.767, 210.384, -105.429, 205.378, -105.262, 200.378, -105.274, 195.372, -105.479, 190.376, -105.889, 185.408, -106.519, 180.486, -107.381, 175.612, -108.492, 170.819, -109.865, 166.097, -111.523, 161.504, -113.467, 157.033, -115.722, 152.725, -118.288, 148.623, -121.159, 144.754, -124.324, 141.173, -127.793, 137.939, -131.596, 135.046, -135.689, 132.494, -139.995, 130.263, -144.458, 128.319, -149.053, 126.633, -153.761, 125.187, -158.534, 123.953, -163.374, 122.911, -168.272, 122.048, -173.186, 121.344, -178.126, 120.787, -183.086, 120.362, -188.078, 120.063, -193.063, 119.879, -198.049, 119.801, -203.062, 119.825, -208.055, 119.943, -213.057, 120.151, -218.058, 120.445, -223.049, 120.822, -228.031, 121.279, -232.999, 121.818, -237.974, 122.44, -242.943, 123.149, -247.893, 123.967, -252.825, 124, -253 )
-width = 5.0
-default_color = Color( 0, 0, 0, 1 )
-texture = SubResource( 47 )
-texture_mode = 1
-script = ExtResource( 123 )
+[node name="Hotspot" parent="Power" instance=ExtResource( 139 )]
+position = Vector2( -260, 173 )
+scale = Vector2( 0.45, 0.6 )
+power_provider = true
+
+[node name="Hotspot2" parent="Power" instance=ExtResource( 139 )]
+position = Vector2( -219, 173 )
+scale = Vector2( 0.45, 0.6 )
+power_provider = true
+
+[node name="Hotspot3" parent="Power" instance=ExtResource( 139 )]
+position = Vector2( -181, 173 )
+scale = Vector2( 0.45, 0.6 )
+power_provider = true
+
+[node name="Hotspot4" parent="Power" instance=ExtResource( 139 )]
+position = Vector2( -140, 173 )
+scale = Vector2( 0.45, 0.6 )
+power_provider = true
+
+[node name="Hotspot5" parent="Power" instance=ExtResource( 139 )]
+position = Vector2( -811, 288 )
+scale = Vector2( 0.45, 0.6 )
+power_provider = true
+
+[node name="Hotspot6" parent="Power" instance=ExtResource( 139 )]
+position = Vector2( -772, 279 )
+scale = Vector2( 0.45, 0.6 )
+power_provider = true
+
+[node name="Hotspot7" parent="Power" instance=ExtResource( 139 )]
+position = Vector2( -735, 267 )
+scale = Vector2( 0.45, 0.6 )
+power_provider = true
+
+[node name="Hotspot8" parent="Power" instance=ExtResource( 139 )]
+position = Vector2( -694, 255 )
+scale = Vector2( 0.45, 0.6 )
+power_provider = true
+
+[node name="Cables" type="Node2D" parent="."]
 
 [node name="Light" type="Node2D" parent="."]
 position = Vector2( 495, 0 )
@@ -914,7 +968,7 @@ position = Vector2( 604, 296 )
 scale = Vector2( 1.07272, 1.07272 )
 frames = SubResource( 1 )
 animation = "idle"
-frame = 5
+frame = 3
 playing = true
 
 [node name="Polygon2D" type="Polygon2D" parent="Girl"]
@@ -1159,7 +1213,6 @@ frames = SubResource( 25 )
 light_mask = 2
 position = Vector2( -23.1875, 19.1094 )
 frames = SubResource( 28 )
-frame = 1
 playing = true
 
 [node name="Intro2" type="Node2D" parent="CanvasLayer"]
@@ -1470,3 +1523,12 @@ light_mask = 2
 position = Vector2( -23.1875, 19.1094 )
 frames = SubResource( 28 )
 frame = 1
+
+[node name="Cable" parent="." instance=ExtResource( 41 )]
+visible = false
+
+[node name="Draggable" parent="." instance=ExtResource( 45 )]
+visible = false
+
+[node name="Position2D" type="Position2D" parent="."]
+position = Vector2( 416, 567 )

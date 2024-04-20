@@ -14,4 +14,5 @@ script = ExtResource( 3 )
 curve = SubResource( 48 )
 
 [node name="Line2D" type="Line2D" parent="Path2D"]
+width = 5.0
 default_color = Color( 1, 1, 1, 1 )

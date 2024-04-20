@@ -6,7 +6,7 @@ export (PackedScene) var cable_end_scene
 
 
 
-export var num_cables = 3
+export var num_cables = 5
 var cable_spacing = Vector2(100, 20)
 # runtime
 var dragging: CableEnd = null
@@ -52,6 +52,11 @@ func _ready():
 		add_child(end2)
 		end2.connect("clicked", self, "start_drag")
 		add_child(cable)
+		
+		cable.set_cable(end1.global_position, end2.global_position, false)
+		
+		cable.jitter()
+		
 	for idx in num_cables:
 		var port = port_instance.duplicate() as PlugPort
 		port.global_position= Vector2(randf()*get_viewport_rect().size.x, randf()*get_viewport_rect().size.y)
