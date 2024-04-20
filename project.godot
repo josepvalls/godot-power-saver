@@ -38,6 +38,11 @@ _global_script_classes=[ {
 "class": "Hotspot",
 "language": "GDScript",
 "path": "res://Hotspot.gd"
+}, {
+"base": "Node2D",
+"class": "PlugPort",
+"language": "GDScript",
+"path": "res://PlugPort.gd"
 } ]
 _global_script_class_icons={
 "AntialiasedLine2D": "res://addons/antialiased_line2d/antialiased_line2d.svg",
@@ -45,7 +50,8 @@ _global_script_class_icons={
 "AntialiasedRegularPolygon2D": "res://addons/antialiased_line2d/antialiased_regular_polygon2d.svg",
 "Cable": "",
 "CableEnd": "",
-"Hotspot": ""
+"Hotspot": "",
+"PlugPort": ""
 }
 
 [application]
