@@ -5,15 +5,15 @@
 
 [sub_resource type="CircleShape2D" id=6]
 
-[node name="Start" type="Area2D"]
+[node name="Draggable" type="Area2D"]
 script = ExtResource( 1 )
 
 [node name="Start" type="Polygon2D" parent="."]
 position = Vector2( -2.70492, -23.55 )
 scale = Vector2( 0.0983607, 0.85 )
-color = Color( 0, 0, 0, 1 )
 polygon = PoolVector2Array( -33.5, 23, -3, 33.5882, 78.3333, 32.4118, 68.1667, 20.6471 )
 script = ExtResource( 2 )
+stroke_color = Color( 1, 1, 1, 1 )
 stroke_width = 2.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

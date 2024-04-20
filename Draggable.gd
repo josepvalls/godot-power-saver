@@ -1,7 +1,12 @@
 extends Area2D
+class_name CableEnd
 
 
 var mouse_over = false
+var cable_id = -1
+var bound_to: Cable = null
+var bound_to_point = -1
+
 signal clicked(source)
 
 func _ready():
