@@ -3,24 +3,33 @@ extends Node2D
 # creation
 export (PackedScene) var cable_scene
 export (PackedScene) var cable_end_scene
+
+
+
 export var num_cables = 3
 var cable_spacing = Vector2(100, 20)
 # runtime
 var dragging: CableEnd = null
 
 func _ready():
+	var cable_instance = $Cable
+	var cable_end_instance = $Draggable
+	
 	# avoid piling everything
 	var current_position = cable_spacing
 	for idx in num_cables:
-		var end1 := cable_end_scene.instance().duplicate() as CableEnd
+		#var end1 := cable_end_scene.instance() as CableEnd
+		var end1 := cable_end_instance.duplicate() as CableEnd
 		end1.global_position = current_position
 		current_position += cable_spacing
 
-		var end2 := cable_end_scene.instance().duplicate() as CableEnd
+		#var end2 := cable_end_scene.instance() as CableEnd
+		var end2 := cable_end_instance.duplicate() as CableEnd
 		end2.global_position = current_position
 		current_position += cable_spacing
 
-		var cable := cable_scene.instance().duplicate() as Cable
+		#var cable := cable_scene.instance() as Cable
+		var cable := cable_instance.duplicate() as Cable
 
 		cable.cable_id = idx
 		end1.cable_id = idx
