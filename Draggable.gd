@@ -4,6 +4,7 @@ class_name CableEnd
 
 var mouse_over = false
 var cable_id = -1
+var plugged_hotspot: Hotspot = null
 
 signal clicked(source)
 

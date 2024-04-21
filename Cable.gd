@@ -4,11 +4,33 @@ class_name Cable
 var cable_id = -1
 
 var cable_jitter = 0
-var cable_jitter_delta = 25
-var cable_jitter_max = 25
+var cable_jitter_delta = 50
+var cable_jitter_max = 50
 
 func _ready():
 	pass
+
+func color_cable(color1: Color, color2: Color, flip: bool):
+	var line = $Path2D/Line2D
+	line.gradient = Gradient.new()
+	if not flip:
+		line.gradient.add_point(0.01, color1)
+		line.gradient.add_point(0.99, color2)
+	else:
+		line.gradient.add_point(0.01, color2)
+		line.gradient.add_point(0.99, color1)
+
+
+	
+func _color_cable(color1: Color, color2: Color, flip: bool):
+	var line = $Path2D/Line2D
+	if not flip:
+		line.gradient.set_color(0, color1)
+		line.gradient.set_color(1, color2)
+	else:
+		line.gradient.set_color(0, color2)
+		line.gradient.set_color(1, color1)
+		
 	
 func _process(delta):
 	
@@ -32,8 +54,8 @@ func jitter():
 	#return
 	#$Path2D.curve.set_point_in(1, $Path2D.curve.get_point_in(1)+Vector2(randi()%50, 0)-Vector2(25,0)) 
 	#$Path2D.curve.set_point_out(1, $Path2D.curve.get_point_out(1)+Vector2(randi()%50, 0)-Vector2(25,0)) 
-	$Path2D.curve.set_point_in(1, Vector2(-cable_jitter-cable_jitter_max, 0)) 
-	$Path2D.curve.set_point_out(1, Vector2(+cable_jitter+cable_jitter_max, 0)) 
+	$Path2D.curve.set_point_in(1, Vector2(-cable_jitter*2-cable_jitter_max*2, 0)) 
+	$Path2D.curve.set_point_out(1, Vector2(+cable_jitter*2+cable_jitter_max*2, 0)) 
 
 
 func set_cable(position1: Vector2, position2: Vector2, flip: bool):

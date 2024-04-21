@@ -79,9 +79,64 @@ var levels = [
 		"mp3": [true, true, 4,2],
 		"phone": [true, true, 4,3],
 		"tablet3": [true, true, 4,4],
+	},
+	{
+		"pc1":[true, true, -5, -5],
+		"pc2":[true, true, -5, -5],
+		"screen1":[true, true, 5, 4],
+		"screen2":[true, true, 4, 2],
+		"mp3": [true, true, 4,2],
+		"phone": [true, true, 4,3],
+		"tablet2": [true, true, 4,4],
+	},
+	{
+		"pc1":[true, true, -5, -5],
+		"pc2":[true, true, -5, -5],
+		"screen1":[true, true, 5, 4],
+		"screen2":[true, true, 4, 2],
+		"mp3": [true, true, 4,2],
+		"phone": [true, true, 4,3],
+		"tablet2": [true, true, 4,4],
+		"tablet3": [true, true, -1,4],
+	},	
+	{
+		"pc1":[true, true, -5, -5],
+		"pc2":[true, true, -5, -5],
+		"screen1":[true, true, 5, 4],
+		"screen2":[true, true, 4, 2],
+		"mp3": [true, true, 4,2],
+		"phone": [true, true, 4,3],
+		"tablet1": [true, true, -1,4],
+		"tablet2": [true, true, 4,4],
+		"tablet3": [true, true, -1,4],
+	},
+	{
+		"pc1":[true, true, -5, -5],
+		"pc2":[true, true, -5, -5],
+		"screen1":[true, true, 5, 4],
+		"screen2":[true, true, 4, 2],
+		"mp3": [true, true, 4,2],
+		"phone": [true, true, 4,3],
+		"tablet1": [true, true, -1,4],
+		"tablet2": [true, true, 4,4],
+		"tablet3": [true, true, -1,4],
+		"remote": [true, true, -1,4],
+	},
+	{
+		"pc1":[true, true, -5, -5],
+		"pc2":[true, true, -5, -5],
+		"screen1":[true, true, 5, 4],
+		"screen2":[true, true, 4, 2],
+		"mp3": [true, true, -1,2],
+		"phone": [true, true, 4,3],
+		"tablet1": [true, true, -1,4],
+		"tablet2": [true, true, 4,4],
+		"tablet3": [true, true, 6,4],
+		"remote": [true, true, -1,4],
+		"pda": [true, true, 3,4],
+		"cassette": [true, true, -1,4],
 	}
-
-	
+	# ^ this is 10 levels
 ]
 
 # cables
@@ -91,46 +146,82 @@ var dragging: CableEnd = null
 var cables = {}
 var ports = {}
 var active_port: Hotspot = null
+var color_power: Color = Color("ffff61")
+var color_plug: Color = Color("0091ff")
+var color_none: Color = Color("35006e")
 
 func create_cables():
 	create_cable(ports["power3"], ports["mp3"])
 	create_cable(ports["tablet1"], ports["power4"])
 	create_cable(ports["power5"], ports["phone"])
 	create_cable(ports["power6"], ports["cassette"])
+	create_cable(ports["power7"], ports["power2"])
 
 func create_cable(from: Hotspot, to: Hotspot):
 	print("creating cable from "+from.uid+" to "+to.uid)
 	var end1 := cable_end_instance.duplicate() as CableEnd
 	end1.global_position = from.port_position
 	end1.show()
+	end1.plugged_hotspot = from
 
 	var end2 := cable_end_instance.duplicate() as CableEnd
 	end2.global_position = to.port_position
 	end2.show()
+	end2.plugged_hotspot = to
 
 	var cable := cable_instance.duplicate() as Cable
 	cable.show()
 	
-	var cable_color = Color(randf(), randf(), 1, 1)
-	cable.modulate = cable_color
-	end1.modulate = cable_color
-	end2.modulate = cable_color
-
 	cables[end1] = [cable, end2, false]
 	cables[end2] = [cable, end1, true]
 	
 
+	$Cables.add_child(cable)
 	$Cables.add_child(end1)
 	end1.connect("clicked", self, "start_drag")
 	$Cables.add_child(end2)
 	end2.connect("clicked", self, "start_drag")
-	$Cables.add_child(cable)
+	
 	
 	refresh_cable(end1)
 
 func refresh_cable(cable_end: CableEnd):
 	var cable_data= cables[cable_end]
 	cable_data[0].set_cable(cable_end.global_position, cable_data[1].global_position, cable_data[2])
+	var color1 = color_none
+	var color2 = color_none
+	var has_power = false
+	var needs_power1: Hotspot = null
+	var needs_power2: Hotspot = null
+	#print("refreshing cable from "+str(cable_end.plugged_hotspot)+" to "+str(cable_data[1].plugged_hotspot))
+	if cable_end.plugged_hotspot!=null:
+		#print("refreshing cable from "+cable_end.plugged_hotspot.uid+" "+str(cable_end.plugged_hotspot.power_provider))
+		if cable_end.plugged_hotspot.power_provider:
+			color1 = color_power
+			has_power = true
+		else:
+			color1 = color_plug
+			needs_power1 = cable_end.plugged_hotspot
+	if cable_data[1].plugged_hotspot!=null:
+		#print("refreshing cable from "+cable_data[1].plugged_hotspot.uid+" "+str(cable_data[1].plugged_hotspot.power_provider))
+		if cable_data[1].plugged_hotspot.power_provider:
+			color2 = color_power
+			has_power = true
+		else:
+			color2 = color_plug
+			needs_power2 = cable_data[1].plugged_hotspot
+	if has_power:
+		if needs_power1!=null:
+			needs_power1.is_plugged = true
+		if needs_power2!=null:
+			needs_power2.is_plugged = true
+	else:
+		if needs_power1!=null:
+			needs_power1.is_plugged = false
+		if needs_power2!=null:
+			needs_power2.is_plugged = false
+
+	cable_data[0].color_cable(color1, color2, cable_data[2])
 
 
 func switch_active_port(port: Hotspot):
@@ -141,6 +232,10 @@ func switch_active_port(port: Hotspot):
 func start_drag(source: CableEnd):
 	print("start dragging "+str(source.cable_id))
 	dragging = source
+	if dragging.plugged_hotspot != null:
+		dragging.plugged_hotspot.is_plugged = false
+	dragging.plugged_hotspot = null
+	refresh_cable(dragging)
 
 # Devices
 
@@ -236,7 +331,7 @@ func update_statuses(delta):
 		$CanvasLayer/Score/ScoreDelta.show()
 		$CanvasLayer/Score/ScoreDelta.text = ("+" if tick_happiness >0 else "") + "%.2f" % tick_happiness
 		$CanvasLayer/Score/Score.text = "%.2f" % current_happiness
-		$CanvasLayer/Score/Power.text = str(current_power)
+		$CanvasLayer/Score/Power.text = str(current_power) + " Watt/h"
 		$CanvasLayer/Score.modulate
 		$CanvasLayer/Score/Tween.interpolate_property($CanvasLayer/Score/ScoreDelta, "rect_position", Vector2(868,28), Vector2(868,0), update_interval, Tween.TRANS_CUBIC, Tween.EASE_IN)
 		$CanvasLayer/Score/Tween.interpolate_property($CanvasLayer/Score/ScoreDelta, "modulate", Color(1,1,1,1), Color(1,1,1,0), update_interval, Tween.TRANS_LINEAR, Tween.EASE_OUT)
@@ -322,6 +417,17 @@ func girl_toggle_level(area):
 			hotspot.is_on = levels[current_level][hotspot.uid][1]
 			hotspot.want_to_use_time = levels[current_level][hotspot.uid][2]
 			hotspot.in_stand_by_time = levels[current_level][hotspot.uid][3]
+	else:
+		var hotspot := area as Hotspot
+		if hotspot != null:
+			print("Toggling "+hotspot.uid)
+			hotspot.elapsed = 0
+			if randf()<0.7:
+				hotspot.want_to_use = true
+				hotspot.is_on = true
+				hotspot.want_to_use_time = randi()%10
+				hotspot.in_stand_by_time = randi()%10
+		
 			
 func do_talk():
 	$Jelly/mouth.playing = true
@@ -347,6 +453,9 @@ func do_next_tutorial():
 		$Tween.start()
 		girl_at = 1
 	elif current_intro == 5:
+		$Tween.stop_all()
+		$Girl.global_position=girl_right
+		girl_stop_sound()
 		click_switch(null, null, null)
 
 	if current_intro <= intro_slides:		
@@ -382,8 +491,10 @@ func _unhandled_input(event):
 		get_tree().set_input_as_handled()
 		if active_port!=null:
 			dragging.global_position = active_port.port_position
+			dragging.plugged_hotspot = active_port
 		else:
 			dragging.global_position.y = 550
+			dragging.plugged_hotspot = null
 		refresh_cable(dragging)
 		dragging = null
 
@@ -432,6 +543,10 @@ func _process(delta):
 func girl_move():
 	current_level += 1
 	print("Starting level "+str(current_level))
+	if current_level > 10:
+		$CanvasLayer/Score/Deterministic.text = "Your happiness for the first 10 levels was: " + str(current_happiness)
+	else:
+		$CanvasLayer/Score/Deterministic.text = "Play "+str(11-current_level)+" more levels to record your score."
 	girl_moving = true
 	$Girl.show()
 	$Girl.animation = "walk"

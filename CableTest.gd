@@ -6,8 +6,8 @@ export (PackedScene) var cable_end_scene
 
 
 
-export var num_cables = 5
-var cable_spacing = Vector2(100, 20)
+export var num_cables = 8
+var cable_spacing = Vector2(50, 20)
 # runtime
 var dragging: CableEnd = null
 var cables = {}
@@ -33,25 +33,33 @@ func _ready():
 
 		#var cable := cable_scene.instance() as Cable
 		var cable := cable_instance.duplicate() as Cable
+		cable.show()
 
 		cable.cable_id = idx
 		end1.cable_id = idx
 		end2.cable_id = idx
 		
 		var cable_color = Color(randf(), randf(), 1, 1)
-		cable.modulate = cable_color
-		end1.modulate = cable_color
-		end2.modulate = cable_color
+		#cable.modulate = cable_color
+		#end1.modulate = cable_color
+		#end2.modulate = cable_color
+		var line := cable.get_node("Path2D/Line2D") as Line2D
+		line.gradient = Gradient.new()
+		line.gradient.add_point(0.01, Color(randf(), randf(), 1, 1))
+		line.gradient.add_point(0.99, Color(1, randf(), 0, 1))
+		#line.gradient.set_color(0, Color(randf(), randf(), 1, 1))
+		#line.gradient.set_color(1, )
+		cable.color_cable(Color(1, randf(), 0, 1), Color(randf(), randf(), 1, 1), false)
 
 		cables[end1] = [cable, end2, false]
 		cables[end2] = [cable, end1, true]
 		
 
+		add_child(cable)
 		add_child(end1)
 		end1.connect("clicked", self, "start_drag")
 		add_child(end2)
 		end2.connect("clicked", self, "start_drag")
-		add_child(cable)
 		
 		cable.set_cable(end1.global_position, end2.global_position, false)
 		
@@ -62,6 +70,7 @@ func _ready():
 		port.global_position= Vector2(randf()*get_viewport_rect().size.x, randf()*get_viewport_rect().size.y)
 		port.get_node("Area2D").connect("mouse_entered", self, "switch_active_port", [port])
 		port.get_node("Area2D").connect("mouse_exited", self, "switch_active_port", [null])
+		port.modulate = Color(randf(), randf(), randf(), 1)
 
 		add_child(port)
 

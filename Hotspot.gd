@@ -16,7 +16,7 @@ export var want_to_use = false
 
 export var uses_battery = true
 export var battery_level = 0.75
-export var is_plugged = true
+export var is_plugged = false
 
 export var is_powered = true
 
@@ -82,7 +82,7 @@ func refresh_status(delta):
 			current_happiness = 0.2 * happiness_generation * delta
 		else:
 			status_str_1 = "Unable to be used"
-			current_happiness = -0.2*happiness_generation * delta
+			current_happiness = -1.0 * delta
 	else:
 		if is_on:
 			status_str_1 = "Wasting power"
