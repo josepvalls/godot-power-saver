@@ -995,7 +995,7 @@ position = Vector2( 604, 296 )
 scale = Vector2( 1.07272, 1.07272 )
 frames = SubResource( 1 )
 animation = "idle"
-frame = 10
+frame = 9
 playing = true
 
 [node name="Polygon2D" type="Polygon2D" parent="Girl"]
@@ -1167,6 +1167,14 @@ align = 1
 
 [node name="Tween" type="Tween" parent="CanvasLayer/Score"]
 
+[node name="Retry" type="Button" parent="CanvasLayer/Score"]
+margin_left = 953.0
+margin_top = 557.0
+margin_right = 1023.0
+margin_bottom = 598.0
+theme = ExtResource( 133 )
+text = "Retry"
+
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="CanvasLayer"]
 stream = ExtResource( 141 )
 autoplay = true
@@ -1254,8 +1262,6 @@ playing = true
 visible = false
 position = Vector2( -39, 0 )
 
-[node name="Tween" type="Tween" parent="CanvasLayer/Intro2"]
-
 [node name="Control" type="Control" parent="CanvasLayer/Intro2"]
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -1327,8 +1333,6 @@ frames = SubResource( 28 )
 [node name="Intro3" type="Node2D" parent="CanvasLayer"]
 visible = false
 position = Vector2( -39, 0 )
-
-[node name="Tween" type="Tween" parent="CanvasLayer/Intro3"]
 
 [node name="Control" type="Control" parent="CanvasLayer/Intro3"]
 anchor_right = 1.0
@@ -1406,8 +1410,6 @@ frame = 1
 visible = false
 position = Vector2( -39, 0 )
 
-[node name="Tween" type="Tween" parent="CanvasLayer/Intro4"]
-
 [node name="Control" type="Control" parent="CanvasLayer/Intro4"]
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -1484,8 +1486,6 @@ frames = SubResource( 28 )
 visible = false
 position = Vector2( -39, 0 )
 
-[node name="Tween" type="Tween" parent="CanvasLayer/Intro5"]
-
 [node name="Control" type="Control" parent="CanvasLayer/Intro5"]
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -1527,8 +1527,8 @@ theme = ExtResource( 133 )
 text = "Next"
 
 [node name="Jelly" type="Node2D" parent="CanvasLayer/Intro5"]
-position = Vector2( 708, 176 )
-scale = Vector2( 0.563035, 0.563035 )
+position = Vector2( 768, 386 )
+scale = Vector2( 1.00737, 1.00737 )
 
 [node name="Sprite" type="Sprite" parent="CanvasLayer/Intro5/Jelly"]
 light_mask = 2

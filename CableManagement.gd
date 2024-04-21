@@ -295,8 +295,8 @@ func update_statuses(delta):
 	if current_state=="playing":
 		update_elapsed += delta
 	if update_elapsed >= update_interval:
-		var fps = Engine.get_frames_per_second()
-		OS.set_window_title("fps: " + str(fps))
+		#var fps = Engine.get_frames_per_second()
+		#OS.set_window_title("fps: " + str(fps))
 
 		var tick_happiness = 0.0
 		update_elapsed = 0	
@@ -348,6 +348,8 @@ func update_statuses(delta):
 		
 		little_jelly_consider_retargetting()
 
+func do_retry():
+	get_tree().change_scene("res://Table.tscn")
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -402,6 +404,8 @@ func _ready():
 	$CanvasLayer/Intro3/Control/Button.connect("pressed", self, "do_next_tutorial")
 	$CanvasLayer/Intro4/Control/Button.connect("pressed", self, "do_next_tutorial")
 	$CanvasLayer/Intro5/Control/Button.connect("pressed", self, "do_next_tutorial")
+	$CanvasLayer/Score/Retry.connect("pressed", self, "do_retry")
+	
 	
 	$CanvasLayer/AudioStreamPlayer.stream = music_on
 	$CanvasLayer/AudioStreamPlayer.volume_db = linear2db(music_volume)
@@ -469,7 +473,18 @@ func do_next_tutorial():
 		girl_stop_sound()
 		click_switch(null, null, null)
 
-	if current_intro <= intro_slides:		
+	if current_intro <= intro_slides:
+		var temp_jelly = $CanvasLayer.get_node("Intro" + str(current_intro-1) + "/Jelly").duplicate()
+		$CanvasLayer.add_child(temp_jelly)
+		var temp_transition_time = 0.3
+		$CanvasLayer.get_node("Intro" + str(current_intro) + "/Jelly").hide()
+		$CanvasLayer/Tween.interpolate_property(temp_jelly, "global_position", temp_jelly.global_position, $CanvasLayer.get_node("Intro" + str(current_intro) + "/Jelly").global_position, temp_transition_time,Tween.TRANS_CUBIC, Tween.EASE_OUT)                
+		$CanvasLayer/Tween.interpolate_property(temp_jelly, "scale", temp_jelly.scale, $CanvasLayer.get_node("Intro" + str(current_intro) + "/Jelly").scale, temp_transition_time,Tween.TRANS_CUBIC, Tween.EASE_OUT)
+		$CanvasLayer/Tween.interpolate_callback(temp_jelly, temp_transition_time, "queue_free")
+		$CanvasLayer/Tween.interpolate_callback($CanvasLayer.get_node("Intro" + str(current_intro) + "/Jelly"), temp_transition_time, "show")
+		$CanvasLayer/Tween.start()
+		
+		
 		$CanvasLayer.get_node("Intro" + str(current_intro)).show()
 	else:
 		current_state = "playing"
@@ -504,7 +519,7 @@ func _unhandled_input(event):
 			dragging.global_position = active_port.port_position
 			dragging.plugged_hotspot = active_port
 		else:
-			dragging.global_position.y = 550
+			dragging.global_position.y = 520
 			dragging.plugged_hotspot = null
 		refresh_cable(dragging)
 		dragging = null
@@ -573,10 +588,10 @@ func _process(delta):
 func girl_move():
 	current_level += 1
 	print("Starting level "+str(current_level))
-	if current_level > 10:
-		$CanvasLayer/Score/Deterministic.text = "Your happiness for the first 10 levels was: " + str(current_happiness)
-	else:
-		$CanvasLayer/Score/Deterministic.text = "Play "+str(11-current_level)+" more levels to record your score."
+	if current_level == 11:
+		$CanvasLayer/Score/Deterministic.text = "Your happiness for the first 10 levels was: " + str(current_happiness) #+ ". Click here to retry."
+	elif current_level < 11:
+		$CanvasLayer/Score/Deterministic.text = "Play "+str(11-current_level)+" more levels to record your score." #Click here to restart."
 	girl_moving = true
 	if not light_on:
 		print("girl moves and light is off "+str(little_jelly_elapsed))

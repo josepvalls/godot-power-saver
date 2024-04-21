@@ -1,0 +1,1 @@
+C:\Users\josep\AppData\Roaming\itch\apps\butler\butler.exe push Exports josepvalls/power-saver:html
