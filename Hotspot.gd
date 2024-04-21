@@ -36,6 +36,8 @@ export var power_use = 75
 export var happiness_generation = 1.0
 export var current_happiness = 1.0
 
+var needs_attention = false
+
 var port_position = Vector2(0,0)
 
 
@@ -54,6 +56,7 @@ func print_status():
 
 
 func refresh_status(delta):
+	needs_attention = false
 	if power_provider:
 		return
 	if want_to_use_time >=0:
@@ -83,10 +86,12 @@ func refresh_status(delta):
 		else:
 			status_str_1 = "Unable to be used"
 			current_happiness = -1.0 * delta
+			needs_attention = true
 	else:
 		if is_on:
 			status_str_1 = "Wasting power"
 			current_happiness = -1.0*happiness_generation * delta
+			needs_attention = true
 		else:
 			status_str_1 = "Off"
 			current_happiness = 0
@@ -111,6 +116,7 @@ func refresh_status(delta):
 					status_str_2 = "Empty battery"
 					is_powered = false
 					is_on = false
+					needs_attention = true
 				else:
 					status_str_2 = "Using battery"
 		else:
@@ -149,9 +155,12 @@ func do_toggle():
 func _process(delta):
 	if power_provider:
 		return	
-	if is_on:
+	if is_on and is_powered:
 		# flicker
 		flicker_delay_current += delta
 		if flicker_delay_current >= flicker_delay:
 			flicker_delay_current = 0
 			get_parent().energy = 0.7+randf()/4
+	else:
+		get_parent().energy = 0
+		

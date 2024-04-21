@@ -1,5 +1,9 @@
 extends Node2D
 
+var little_jelly_elapsed = 0
+var little_jelly_target = null
+var little_jelly_need_attention = {}
+
 
 var girl_at = 0
 var girl_left = Vector2(-250,320)
@@ -12,7 +16,7 @@ export(AudioStream) var switch_on
 export(AudioStream) var switch_off
 export(AudioStream) var music_on
 export(AudioStream) var music_off
-var music_volume = 0.4
+var music_volume = 1.0
 
 
 var light_on = true
@@ -146,9 +150,9 @@ var dragging: CableEnd = null
 var cables = {}
 var ports = {}
 var active_port: Hotspot = null
-var color_power: Color = Color("ffff61")
-var color_plug: Color = Color("0091ff")
-var color_none: Color = Color("35006e")
+var color_power: Color = Color("000000")# Color("ffff61")
+var color_plug: Color = Color("000000")# Color("0091ff")
+var color_none: Color = Color("000000")
 
 func create_cables():
 	create_cable(ports["power3"], ports["mp3"])
@@ -310,6 +314,11 @@ func update_statuses(delta):
 			
 			if hotspot.is_on:
 				current_power += hotspot.power_use
+				
+			if hotspot.needs_attention:
+				little_jelly_need_attention[hotspot] = true
+			elif little_jelly_need_attention.has(hotspot):
+				little_jelly_need_attention.erase(hotspot)
 			
 			tick_happiness += hotspot.current_happiness
 				
@@ -336,6 +345,8 @@ func update_statuses(delta):
 		$CanvasLayer/Score/Tween.interpolate_property($CanvasLayer/Score/ScoreDelta, "rect_position", Vector2(868,28), Vector2(868,0), update_interval, Tween.TRANS_CUBIC, Tween.EASE_IN)
 		$CanvasLayer/Score/Tween.interpolate_property($CanvasLayer/Score/ScoreDelta, "modulate", Color(1,1,1,1), Color(1,1,1,0), update_interval, Tween.TRANS_LINEAR, Tween.EASE_OUT)
 		$CanvasLayer/Score/Tween.start()
+		
+		little_jelly_consider_retargetting()
 
 
 # Called when the node enters the scene tree for the first time.
@@ -522,17 +533,36 @@ func click_switch(camera, event: InputEvent, position):
 			get_tree().call_group("shadows", "show")
 			light_on=true
 
+func little_jelly_consider_retargetting(suggested_target=null):
+	if suggested_target != null:
+		little_jelly_target = suggested_target
+		little_jelly_elapsed = 0
+	else:
+		if len(little_jelly_need_attention)==0:
+			little_jelly_target = null
+		else:
+			if little_jelly_elapsed > 1:
+				var new_target = little_jelly_need_attention.keys()[randi()%len(little_jelly_need_attention)]
+				if new_target != little_jelly_target:
+					little_jelly_target = new_target
+					little_jelly_elapsed = 0
+
 func _process(delta):
 	# devices
 	update_statuses(delta)
 	# move to cursor
 	if current_state=="playing":
-		var jelly_target = get_viewport().get_mouse_position() - Vector2(0,30)
+		little_jelly_elapsed += delta * 2
+		var jelly_target = null
+		if little_jelly_target == null:
+			jelly_target = Vector2(cos(little_jelly_elapsed)*100, cos(little_jelly_elapsed)*sin(little_jelly_elapsed)*100) + get_viewport().get_mouse_position() + Vector2(0,-30)
+		else:
+			jelly_target = Vector2(cos(little_jelly_elapsed)*50, cos(little_jelly_elapsed)*sin(little_jelly_elapsed)*50) + little_jelly_target.global_position
 		var vec = jelly_target - $LittleJelly.global_position
-		$LittleJelly.look_at(jelly_target)
-		$LittleJelly.rotation -= PI/4
-		if vec.length() < 100:
-			$LittleJelly.rotation = lerp(0, $LittleJelly.rotation, vec.length()/100)
+		#$LittleJelly.look_at(jelly_target)
+		#$LittleJelly.rotation -= PI/4
+		#if vec.length() < 100:
+		#	$LittleJelly.rotation = lerp(0, $LittleJelly.rotation, vec.length()/100)
 		$LittleJelly.global_position = lerp($LittleJelly.global_position, jelly_target, 0.1)
 		
 		if dragging != null:
@@ -548,6 +578,11 @@ func girl_move():
 	else:
 		$CanvasLayer/Score/Deterministic.text = "Play "+str(11-current_level)+" more levels to record your score."
 	girl_moving = true
+	if not light_on:
+		print("girl moves and light is off "+str(little_jelly_elapsed))
+		little_jelly_consider_retargetting($Switch)
+	else:
+		print("girl moves and light is on "+str(little_jelly_elapsed))
 	$Girl.show()
 	$Girl.animation = "walk"
 	if girl_at == 0:
