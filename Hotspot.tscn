@@ -3,7 +3,7 @@
 [ext_resource path="res://Hotspot.gd" type="Script" id=1]
 
 [sub_resource type="CircleShape2D" id=1]
-radius = 40.0
+radius = 47.0106
 
 [node name="Hotspot" type="Area2D"]
 script = ExtResource( 1 )

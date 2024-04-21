@@ -553,10 +553,13 @@ func little_jelly_consider_retargetting(suggested_target=null):
 		little_jelly_target = suggested_target
 		little_jelly_elapsed = 0
 	else:
-		if len(little_jelly_need_attention)==0:
-			little_jelly_target = null
-		else:
-			if little_jelly_elapsed > 1:
+		if little_jelly_elapsed > 1.1:
+			if len(little_jelly_need_attention)==0:
+				if little_jelly_target!=null:
+					little_jelly_elapsed = 0
+				little_jelly_target = null
+				
+			else:		
 				var new_target = little_jelly_need_attention.keys()[randi()%len(little_jelly_need_attention)]
 				if new_target != little_jelly_target:
 					little_jelly_target = new_target
@@ -567,12 +570,18 @@ func _process(delta):
 	update_statuses(delta)
 	# move to cursor
 	if current_state=="playing":
-		little_jelly_elapsed += delta * 2
+		if ($Girl.global_position - $Switch.global_position).length_squared() < 36000 and not light_on:
+			print("girl turns on switch")
+			click_switch(null, null, null)
+		
+		little_jelly_elapsed += delta 
+		var center_default_jelly = PI/2 #+ (randi()%2) * PI
 		var jelly_target = null
 		if little_jelly_target == null:
-			jelly_target = Vector2(cos(little_jelly_elapsed)*100, cos(little_jelly_elapsed)*sin(little_jelly_elapsed)*100) + get_viewport().get_mouse_position() + Vector2(0,-30)
+			#jelly_target = Vector2(cos(little_jelly_elapsed)*100, cos(little_jelly_elapsed)*sin(little_jelly_elapsed)*100) + get_viewport().get_mouse_position() + Vector2(0,-30)
+			jelly_target = Vector2(cos(little_jelly_elapsed+center_default_jelly)*500, cos(little_jelly_elapsed+center_default_jelly)*sin(little_jelly_elapsed+center_default_jelly)*100) + get_viewport_rect().size/2 + Vector2(0,-100)
 		else:
-			jelly_target = Vector2(cos(little_jelly_elapsed)*50, cos(little_jelly_elapsed)*sin(little_jelly_elapsed)*50) + little_jelly_target.global_position
+			jelly_target = Vector2(cos(little_jelly_elapsed+center_default_jelly)*50, cos(little_jelly_elapsed+center_default_jelly)*sin(little_jelly_elapsed+center_default_jelly)*50) + little_jelly_target.global_position
 		var vec = jelly_target - $LittleJelly.global_position
 		#$LittleJelly.look_at(jelly_target)
 		#$LittleJelly.rotation -= PI/4
