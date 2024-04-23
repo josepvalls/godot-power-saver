@@ -16,6 +16,8 @@ export(AudioStream) var switch_on
 export(AudioStream) var switch_off
 export(AudioStream) var music_on
 export(AudioStream) var music_off
+export(AudioStream) var plug_on
+export(AudioStream) var plug_off
 var music_volume = 1.0
 
 
@@ -159,7 +161,7 @@ func create_cables():
 	create_cable(ports["tablet1"], ports["power4"])
 	create_cable(ports["power5"], ports["phone"])
 	create_cable(ports["power6"], ports["cassette"])
-	create_cable(ports["power7"], ports["power2"])
+	create_cable(ports["power2"], ports["power1"])
 
 func create_cable(from: Hotspot, to: Hotspot):
 	print("creating cable from "+from.uid+" to "+to.uid)
@@ -229,17 +231,25 @@ func refresh_cable(cable_end: CableEnd):
 
 
 func switch_active_port(port: Hotspot):
-	active_port = port
+	if port!=null:
+		print("switch_active_port "+str(port.uid))
+		active_port = port
+	else:
+		print("switch_active_port null")
+	
 
 
 
 func start_drag(source: CableEnd):
-	print("start dragging "+str(source.cable_id))
-	dragging = source
-	if dragging.plugged_hotspot != null:
-		dragging.plugged_hotspot.is_plugged = false
-	dragging.plugged_hotspot = null
-	refresh_cable(dragging)
+	if current_state == "playing":
+		$Switch/AudioStreamPlayer.stream = plug_on
+		$Switch/AudioStreamPlayer.play()
+		print("start dragging "+str(source.cable_id))
+		dragging = source
+		if dragging.plugged_hotspot != null:
+			dragging.plugged_hotspot.is_plugged = false
+		dragging.plugged_hotspot = null
+		refresh_cable(dragging)
 
 # Devices
 
@@ -514,6 +524,8 @@ func _unhandled_input(event):
 			$CanvasLayer/ControlPopup.hide()
 	elif dragging!= null and event is InputEventMouseButton and event.button_index == BUTTON_LEFT and not event.pressed:
 		print("stop dragging "+str(dragging.cable_id))
+		$Switch/AudioStreamPlayer.stream = plug_off
+		$Switch/AudioStreamPlayer.play()
 		get_tree().set_input_as_handled()
 		if active_port!=null:
 			dragging.global_position = active_port.port_position
@@ -550,6 +562,7 @@ func click_switch(camera, event: InputEvent, position):
 
 func little_jelly_consider_retargetting(suggested_target=null):
 	if suggested_target != null:
+		$LittleJelly/AudioStreamPlayer.play()
 		little_jelly_target = suggested_target
 		little_jelly_elapsed = 0
 	else:
@@ -562,6 +575,7 @@ func little_jelly_consider_retargetting(suggested_target=null):
 			else:		
 				var new_target = little_jelly_need_attention.keys()[randi()%len(little_jelly_need_attention)]
 				if new_target != little_jelly_target:
+					$LittleJelly/AudioStreamPlayer.play()
 					little_jelly_target = new_target
 					little_jelly_elapsed = 0
 

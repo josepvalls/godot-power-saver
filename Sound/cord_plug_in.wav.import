@@ -1,0 +1,23 @@
+[remap]
+
+importer="wav"
+type="AudioStreamSample"
+path="res://.import/cord_plug_in.wav-c3a27147b4818bd86c780b4671a9e5f5.sample"
+
+[deps]
+
+source_file="res://Sound/cord_plug_in.wav"
+dest_files=[ "res://.import/cord_plug_in.wav-c3a27147b4818bd86c780b4671a9e5f5.sample" ]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=0
